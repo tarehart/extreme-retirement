@@ -1,0 +1,13 @@
+plugins {
+  id "com.moowork.node" version "0.12"
+}
+
+node {
+    download = true;
+}
+
+task run(type: NodeTask) {
+    script = file('server.js')
+}
+
+run.dependsOn 'npmInstall'
