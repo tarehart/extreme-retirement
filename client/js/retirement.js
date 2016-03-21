@@ -9,38 +9,71 @@ function preload() {
 }
 
 var player;
+var background;
+var balanceTxt;
+var ageTxt;
 var cursors;
+var balance;
+var interestRate;
+var spendAmount;
+var DOLLARS_PER_PIXEL = 1000;
+var PIXELS_PER_MONTH = 200;
+var months = 0;
+var age = 65;
 
 function create() {
 
-    game.add.tileSprite(0, 0, 1920, 1920, 'background');
+    background = game.add.tileSprite(0, 0, 1920, 1920, 'background');
 
-    game.world.setBounds(0, 0, 1920, 1920);
+    // World bounds max out at 10 million dollars.
+    var worldHeight = 10000000 / DOLLARS_PER_PIXEL;
+    game.world.setBounds(0, -worldHeight, 5000, worldHeight + 100);
 
     game.physics.startSystem(Phaser.Physics.P2JS);
 
-    player = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
-    player.scale.setTo(.5, .5);
     
-    game.physics.p2.enable(player);
-    
-    player.inputEnabled = true;
-    player.input.enableDrag();
 
     cursors = game.input.keyboard.createCursorKeys();
 
+    
+    
+    balance = 1500000;
+    interestRate = .04 / 12;
+    spendAmount = 6000;
+    
+    player = game.add.sprite(game.world.bounds.x + 50, balanceToY(balance), 'player');
+    player.scale.setTo(.5, .5);
+    
+    game.physics.p2.enable(player);
     game.camera.follow(player);
+    
+    balanceTxt = game.add.text(0, 0, "");
+    ageTxt = game.add.text(0, 0, "");
+    
 
 }
 
 function update() {
+    
+    months++;
+    ageTxt.text = (age + Math.floor(months / 12)) + "";
+    
+    if (balance > 0) {
+        var interest = balance * interestRate;
+        balance += interest - spendAmount;
 
-    player.body.velocity.y += 2;
-    player.body.velocity.x = 200;
+        player.body.y = balanceToY(balance);
+        player.body.moveRight(PIXELS_PER_MONTH);
+    } else {
+        balance = 0;
+    }
+    
+    balanceTxt.text = accounting.formatMoney(balance);
+
 
     if (cursors.up.isDown)
     {
-        player.body.moveUp(300)
+        player.body.moveUp(300);
     }
     else if (cursors.down.isDown)
     {
@@ -55,6 +88,17 @@ function update() {
     {
         player.body.moveRight(300);
     }
+    
+    background.x = player.body.x - background.width / 2;
+    background.y = player.body.y - background.height / 2;
+    background.tilePosition.x = -background.x;
+    background.tilePosition.y = -background.y;
+    
+    balanceTxt.x = player.body.x + 100;
+    balanceTxt.y = player.body.y;
+    
+    ageTxt.x = player.body.x;
+    ageTxt.y = player.body.y - 100;
 
 }
 
@@ -63,4 +107,9 @@ function render() {
     game.debug.cameraInfo(game.camera, 32, 32);
     game.debug.spriteCoords(player, 32, 500);
 
+}
+
+function balanceToY(balance) {
+    //  The world goes from -10,000 at the top to 0 at the bottom. A negative value is high in the air. 0 is on the ground.
+    return -balance / DOLLARS_PER_PIXEL;
 }
