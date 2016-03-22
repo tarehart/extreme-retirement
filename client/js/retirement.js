@@ -5,10 +5,12 @@ function preload() {
 
     game.load.image('background','img/debug-grid-1920x1920.png');
     game.load.image('player','img/jake-parachute.png');
+    game.load.image('angel','img/ugly-angel.png');
 
 }
 
 var player;
+var angel;
 var background;
 var balanceTxt;
 var ageTxt;
@@ -19,7 +21,6 @@ var spendAmount;
 var DOLLARS_PER_PIXEL = 1000;
 var PIXELS_PER_MONTH = 200;
 var months = 0;
-var age = 65;
 
 function create() {
 
@@ -43,6 +44,11 @@ function create() {
     
     player = game.add.sprite(game.world.bounds.x + 50, balanceToY(balance), 'player');
     player.scale.setTo(.5, .5);
+    player.vitals = {
+        initialAge: 65,
+        ageAtDeath: getDeath(),
+        isAlive: true
+    }
     
     game.physics.p2.enable(player);
     game.camera.follow(player);
@@ -56,7 +62,14 @@ function create() {
 function update() {
     
     months++;
-    ageTxt.text = (age + Math.floor(months / 12)) + "";
+    
+    if (player.vitals.isAlive) {
+        var currentAge = player.vitals.initialAge + Math.floor(months / 12);
+        ageTxt.text = currentAge + "";
+        if (currentAge === player.vitals.ageAtDeath) {
+            doDie();
+        }
+    }
     
     if (balance > 0) {
         var interest = balance * interestRate;
@@ -102,6 +115,14 @@ function update() {
 
 }
 
+function initAngel() {
+    angel = game.add.sprite(player.body.x, player.body.y - 20, 'angel');
+    angel.scale.setTo(.5, .5);
+    game.physics.p2.enable(angel);
+    angel.body.velocity.y = -5;
+    
+}
+
 function render() {
 
     game.debug.cameraInfo(game.camera, 32, 32);
@@ -112,4 +133,12 @@ function render() {
 function balanceToY(balance) {
     //  The world goes from -10,000 at the top to 0 at the bottom. A negative value is high in the air. 0 is on the ground.
     return -balance / DOLLARS_PER_PIXEL;
+}
+function doDie() {
+    player.vitals.isAlive = false;
+    initAngel();
+}
+
+function getDeath() {
+    return 97;
 }
