@@ -46,9 +46,9 @@ function create() {
     player.scale.setTo(.5, .5);
     player.vitals = {
         initialAge: 65,
-        ageAtDeath: getDeath(),
+        ageAtDeath: getDeath(65),
         isAlive: true
-    }
+    };
     
     game.physics.p2.enable(player);
     game.camera.follow(player);
@@ -139,6 +139,6 @@ function doDie() {
     initAngel();
 }
 
-function getDeath() {
-    return 97;
+function getDeath(startAge) {
+    return RetireUtils.ageAtDeath(startAge);
 }
