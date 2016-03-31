@@ -6,6 +6,7 @@ function preload() {
     game.load.image('background','img/debug-grid-1920x1920.png');
     game.load.image('player','img/jake-parachute.png');
     game.load.image('angel','img/ugly-angel.png');
+    game.load.image('log','img/log.png');
 
 }
 
@@ -32,16 +33,16 @@ function create() {
 
     game.physics.startSystem(Phaser.Physics.P2JS);
 
-    
+
 
     cursors = game.input.keyboard.createCursorKeys();
 
-    
-    
+
+
     balance = 1500000;
     interestRate = .04 / 12;
     spendAmount = 6000;
-    
+
     player = game.add.sprite(game.world.bounds.x + 50, balanceToY(balance), 'player');
     player.scale.setTo(.5, .5);
     player.vitals = {
@@ -49,20 +50,46 @@ function create() {
         ageAtDeath: getDeath(65),
         isAlive: true
     };
-    
+
     game.physics.p2.enable(player);
     game.camera.follow(player);
-    
+
     balanceTxt = game.add.text(0, 0, "");
     ageTxt = game.add.text(0, 0, "");
-    
+
+    var startingY = balanceToY(balance);
+
+    for (var i = 0; i < 30; i++){
+        var logDenied = getRandomInt(0, 4);
+        for (var j = 0; j < 4; j++){
+            if (j === logDenied){
+                continue;
+            }
+            var logHeight;
+            var logX;
+            logX = game.world.bounds.x + 500 + j * 75;
+            logHeight = startingY + i * 150;
+            var log = game.add.sprite(logX, logHeight, 'log');
+            log.scale.setTo(.25, .25);
+            game.physics.p2.enable(log);
+            log.body.static = true;
+        }
+
+    }
+
 
 }
 
+// Returns a random integer between min (included) and max (excluded)
+// Using Math.round() will give you a non-uniform distribution!
+function getRandomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min;
+}
+
 function update() {
-    
+
     months++;
-    
+
     if (player.vitals.isAlive) {
         var currentAge = player.vitals.initialAge + Math.floor(months / 12);
         ageTxt.text = currentAge + "";
@@ -70,7 +97,7 @@ function update() {
             doDie();
         }
     }
-    
+
     if (balance > 0) {
         var interest = balance * interestRate;
         balance += interest - spendAmount;
@@ -80,7 +107,7 @@ function update() {
     } else {
         balance = 0;
     }
-    
+
     balanceTxt.text = accounting.formatMoney(balance);
 
 
@@ -101,17 +128,17 @@ function update() {
     {
         player.body.moveRight(300);
     }
-    
+
     background.x = player.body.x - background.width / 2;
     background.y = player.body.y - background.height / 2;
     background.tilePosition.x = -background.x;
     background.tilePosition.y = -background.y;
-    
+
     balanceTxt.x = player.body.x + 100;
     balanceTxt.y = player.body.y;
-    
+
     ageTxt.x = player.body.x;
-    ageTxt.y = player.body.y - 100;
+    ageTxt.y = player.body.y + 100;
 
 }
 
@@ -120,7 +147,7 @@ function initAngel() {
     angel.scale.setTo(.5, .5);
     game.physics.p2.enable(angel);
     angel.body.velocity.y = -5;
-    
+
 }
 
 function render() {
